@@ -1,0 +1,66 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@5.0.0
+
+jobs:
+  unit-tests:
+    executor:
+      name: win/server-2022
+      size: medium
+      shell: powershell.exe
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - dotnet-packages-v2-{{ checksum "PrimeService.Tests/PrimeService.Tests.csproj" }}
+      - run:
+          name: Generate list of split test
+          shell: bash -euo pipefail
+          command: |
+            echo Running VSTest to get a list of available tests
+            dotnet test --list-tests | tee raw-output-from-vstest.txt
+            echo
+
+            echo Scraping the list of tests
+            sed -e '1,/The following Tests are available:/d' -e 's/^[[:space:]]\{1,\}//g' raw-output-from-vstest.txt | tee pool.txt
+            echo
+
+            echo Passing through '`circleci tests`'
+            circleci tests split --split-by timings --timings-type testname <pool.txt | tee tests-to-run.txt
+            echo
+
+            echo Escape then reformat
+            # Assuming that class names and method names in tests never include characters requiring escapes
+            sed -e 's/\([()]\)/\\\1/g' -e 's/\r\{0,1\}$/|DisplayName=/g' tests-to-run.txt | tr -d '\r\n' | sed -e 's/^/DisplayName=/' -e 's/|DisplayName=$//' | tee filter-value.txt
+          environment:
+            MSYS: noglob # Spell to stop MSYS from messing up backslashes
+            CYGWIN: noglob # Spell to stop Cygwin - if there is any - from messing up backslashes
+      - run:
+          name: Run tests and save output
+          command: |
+            dotnet test --filter "$(Get-Content filter-value.txt)" --logger junit
+      - run:
+          name: Post-process test results data - to include class name in test name
+          shell: bash -euo pipefail
+          command: |
+            # Assuming that the JUnit logger spits class names first then test names later
+            sed -i -e 's/classname="\([^"]\{1,\}\)" \(.*\)name="\([^"]\{1,\}\)"/classname="\1" \2name="\1.\3"/g' PrimeService.Tests/TestResults/TestResults.xml
+      - save_cache:
+          paths:
+            - PrimeService/obj
+            - PrimeService/bin
+            - PrimeService.Tests/obj
+            - PrimeService.Tests/bin
+          key: dotnet-packages-v2-{{ checksum "PrimeService.Tests/PrimeService.Tests.csproj" }}
+
+      - store_artifacts:
+          path: PrimeService.Tests/TestResults/TestResults.xml
+      - store_test_results:
+          path: PrimeService.Tests/TestResults/TestResults.xml
+
+workflows:
+  tests:
+    jobs:
+      - unit-tests
