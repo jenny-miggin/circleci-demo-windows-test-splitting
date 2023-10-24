@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Run tests and save output
           command: |
-            dotnet test --filter "$(Get-Content filter-value.txt)" --logger junit
+            circleci tests run --command="xargs dotnet test --filter "$(Get-Content filter-value.txt)" --logger junit"
       - run:
           name: Post-process test results data - to include class name in test name
           shell: bash -euo pipefail
