@@ -31,6 +31,10 @@ jobs:
             circleci tests split --split-by timings --timings-type testname <pool.txt | tee tests-to-run.txt
             echo
 
+            echo Passing through new test run
+            circleci tests run --command="xargs tee tests-to-run.txt" --verbose --split-by timings --timings-type testname <pool.txt
+            echo
+
             echo Escape then reformat
             # Assuming that class names and method names in tests never include characters requiring escapes
             sed -e 's/\([()]\)/\\\1/g' -e 's/\r\{0,1\}$/|DisplayName=/g' tests-to-run.txt | tr -d '\r\n' | sed -e 's/^/DisplayName=/' -e 's/|DisplayName=$//' | tee filter-value.txt
@@ -40,7 +44,7 @@ jobs:
       - run:
           name: Run tests and save output
           command: |
-            circleci tests run --command="xargs dotnet test --filter "$(Get-Content filter-value.txt)" --logger junit"
+            dotnet test --filter "$(Get-Content filter-value.txt)" --logger junit
       - run:
           name: Post-process test results data - to include class name in test name
           shell: bash -euo pipefail
