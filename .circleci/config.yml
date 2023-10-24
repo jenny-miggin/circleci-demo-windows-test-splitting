@@ -32,7 +32,7 @@ jobs:
             echo
 
             echo Passing through new test run
-            circleci tests run --command="xargs tee tests-to-run.txt" --verbose --split-by timings --timings-type testname <pool.txt
+            cat pool.txt | circleci tests run --command="xargs tee tests-to-run.txt" --verbose --split-by timings --timings-type testname
             echo
 
             echo Escape then reformat
