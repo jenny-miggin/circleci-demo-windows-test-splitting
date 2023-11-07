@@ -15,6 +15,7 @@ namespace Prime.UnitTests.Services
 
         #region Sample_TestCode
         [Theory]
+        [Trait("TestCategory", "NotPrime")]
         [InlineData(-1)]
         [InlineData(0)]
         [InlineData(1)]
@@ -27,6 +28,7 @@ namespace Prime.UnitTests.Services
         #endregion
 
         [Theory]
+        [Trait("TestCategory", "Prime")]
         [InlineData(2)]
         [InlineData(3)]
         [InlineData(5)]

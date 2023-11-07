@@ -20,7 +20,7 @@ jobs:
           shell: bash -euo pipefail
           command: |
             echo Running VSTest to get a list of available tests
-            dotnet test --list-tests | tee raw-output-from-vstest.txt
+            dotnet test --list-tests --filter TestCategory="NotPrime" | tee raw-output-from-vstest.txt
             echo
 
             echo Scraping the list of tests
@@ -31,9 +31,9 @@ jobs:
             circleci tests split --split-by timings --timings-type testname <pool.txt | tee tests-to-run.txt
             echo
 
-            echo Passing through new test run
-            cat pool.txt | circleci tests run --command="xargs tee tests-to-run.txt" --verbose --split-by timings --timings-type testname
-            echo
+            # echo Passing through new test run
+            # cat pool.txt | circleci tests run --command="xargs tee tests-to-run.txt" --verbose --split-by timings --timings-type testname
+            # echo
 
             echo Escape then reformat
             # Assuming that class names and method names in tests never include characters requiring escapes
