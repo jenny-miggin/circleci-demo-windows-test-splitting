@@ -31,10 +31,6 @@ jobs:
             circleci tests split --split-by timings --timings-type testname <pool.txt | tee tests-to-run.txt
             echo
 
-            # echo Passing through new test run
-            # cat pool.txt | circleci tests run --command="xargs tee tests-to-run.txt" --verbose --split-by timings --timings-type testname
-            # echo
-
             echo Escape then reformat
             # Assuming that class names and method names in tests never include characters requiring escapes
             sed -e 's/\([()]\)/\\\1/g' -e 's/\r\{0,1\}$/|DisplayName=/g' tests-to-run.txt | tr -d '\r\n' | sed -e 's/^/DisplayName=/' -e 's/|DisplayName=$//' | tee filter-value.txt
