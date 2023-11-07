@@ -28,7 +28,7 @@ jobs:
             echo
 
             echo Passing through '`circleci tests`'
-            circleci tests split --split-by timings --timings-type testname <pool.txt | tee tests-to-run.txt
+            & circleci-agent tests split --split-by timings --timings-type testname <pool.txt | tee tests-to-run.txt
             echo
 
             echo Escape then reformat
